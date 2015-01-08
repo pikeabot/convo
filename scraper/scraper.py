@@ -14,14 +14,23 @@ from sqlalchemy.orm import sessionmaker, relationship
 from flask.ext.sqlalchemy import SQLAlchemy
 from bs4 import BeautifulSoup
 
+Base = declarative_base()
+
+
+class Twitdata(Base):
+	__tablename__='twitdata'
+	id = Column(Integer, primary_key=True)
+	text = Column(String(500))
+	category = Column(String(50))
+
 '''
 connect directly to twitter to scrape accounts
 '''
 #url='https://api.twitter.com/oauth2/token'
-url='https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=ConanOBrien&count=2'
+url='https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=Schuldensuehner&count=2'
 def twit_oauth(url):
-	consumer = oauth.Consumer(key=CONSUMER_KEY, secret=CONSUMER_SECRET)
-	token = oauth.Token(key=ACCESS_TOKEN, secret=ACCESS_TOKEN_SECRET)
+	consumer = oauth.Consumer(key=TW_CONSUMER_KEY, secret=TW_CONSUMER_SECRET)
+	token = oauth.Token(key=TW_ACCESS_TOKEN, secret=TW_ACCESS_TOKEN_SECRET)
 	client = oauth.Client(consumer, token)
 	resp, content = client.request( url, "GET")
 	r=json.dumps(resp)
@@ -44,23 +53,20 @@ def soupify(url):
 
 	return BeautifulSoup(page)
 
-Base = declarative_base(url)
 
-
-class fdata(Base):
-	__tablename__='fdata'
-	id = Column(Integer, primary_key=True)
-	text = Column(String(500))
-	category = Column(String(50))
-
-engine = create_engine('postgresql://centralbureacracy:centralfiling@localhost/convo')
+'''
+engine = create_engine(DATABASE)
 #Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
 
 session=Session()
+'''
+twit_oauth(url)
 
+'''
 soup = soupify('https://twitter.com/brenton_clarke')
+
 
 #print soup.find("div", {"class:ProfileTweet-text js-tweet-text u-dir"})
 tweets=soup.find_all("p", class_="ProfileTweet-text js-tweet-text u-dir")
@@ -79,3 +85,4 @@ for t in text:
 		pass
 
 session.commit()
+'''

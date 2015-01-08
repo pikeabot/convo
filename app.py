@@ -19,20 +19,25 @@ app = MyServer(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://centralbureacracy:centralfiling@localhost/convo'
 db = SQLAlchemy(app)
 
-class Statement(db.Model):
-	__tablename__='statement'
+'''
+updated to many-to-many relationship
+'''
+node_to_node = db.Table("node_to_node", 
+    db.Column("statement_id", db.Integer, db.ForeignKey("node.id"), primary_key=True),
+    db.Column("response_id", db.Integer, db.ForeignKey("node.id"), primary_key=True),
+    db.Column("weight", db.Float)
+)
+
+class Node(db.Model):
+	__tablename__ = 'node'
 	id = db.Column(db.Integer, primary_key=True)
 	text = db.Column(db.String(500))
 	freq = db.Column(db.Float)
-	category = db.Column(db.String(50))
-	children = db.relationship("Response", backref="statement", lazy="dynamic")
-
-class Response(db.Model):
-	__tablename__='response'
-	id = db.Column(db.Integer, primary_key=True)
-	text = db.Column(db.String(500))
-	statement_id=db.Column(db.Integer)
-	parent_id = db.Column(db.Integer, db.ForeignKey('statement.id'))
+	response_nodes = db.relationship("Node",
+						secondary=node_to_node,
+						primaryjoin=id==node_to_node.c.statement_id,
+						secondaryjoin=id==node_to_node.c.response_id,
+						backref="statement_nodes")
 
 '''
 use Levenshtein distance to find the text most similar to the text the user
@@ -46,30 +51,31 @@ get and process a response from the sqlalchemy db
 input text does not need to be already in the db
 '''
 def get_comp_response(words):
-	s=Statement.query.all()
+	s=Node.query.all()
 	c=closest(words, s)
 	print c
-	return Response.query.filter(Response.parent_id==int(c[0])).first()
+	n=Node.query.filter(Node.id==int(c[0])).first()
+	return n.response_nodes[0]	#return the response
+	
 
 def add_db_user_text(words, previous_words):
 	#check if user input exists
-	ur=Response.query.filter(Response.text.ilike(words)).first()
+	ur=Node.query.filter(Node.text.ilike(words)).first()
 	if ur:
 		#check if there is a connection between user input and statement
-		ps=Statement.query.filter(Statement.text.ilike(previous_words)).first()
-		if ur.parent_id!=ps.id:
-			ps.children.append(ur)
+		ps=Node.query.filter(Node.text.ilike(previous_words)).first()
+		if ur.id!=ps.response_nodes[0].id:
+			ps.response_nodes.append(ur)
 			db.session.commit()
 	else:
-		#add user input to Statement table
-		s=Statement(text=words, category='Core', freq=0)
-		db.session.add(s)
+		#add user input to Node table
+		r=Node(text=words, freq=0)
+		db.session.add(r)
 		db.session.commit()
 		#link user input to response and parent statement
-		ps=Statement.query.filter(Statement.text.ilike(previous_words)).first()
-		r=Response(text=words, parent_id=ps.id, statement_id=s.id)
-		s.children.append(r)
-		db.session.add(r)
+		ps=Node.query.filter(Node.text.ilike(previous_words)).first()
+		ps.response_nodes.append(r)
+		db.session.add(ps)
 		db.session.commit()
 	return
 
