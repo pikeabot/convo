@@ -12,17 +12,17 @@ Attempt at writing a virtual chat program where the other person is the computer
 * Flask
 * [SQLalchemy-utils](https://sqlalchemy-utils.readthedocs.org/en/latest/#)
 * python-levenshtein<br>
-   sudo apt-get install python-Levenshtein
+        **sudo apt-get install python-Levenshtein**
 
 ##Create the database and tables:
 
 In Postgresql, set up a user and password with superuser privileges
 
 ###To setup the postgresql database:
-   python app.py username password
+   python seed/setup_db.py username password
 
 ###To seed the database:
-   python seeder.py
+   python seed/seeder.py
 
 #Run 
 Run python app.py from command line. 
