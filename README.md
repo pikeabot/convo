@@ -11,7 +11,7 @@ Attempt at writing a virtual chat program where the other person is the computer
 * SQLAlchemy
 * Flask
 * [SQLalchemy-utils](https://sqlalchemy-utils.readthedocs.org/en/latest/#)
-* python-levenshtein\n
+* python-levenshtein<br>
    sudo apt-get install python-Levenshtein
 
 ##Create the database and tables:
