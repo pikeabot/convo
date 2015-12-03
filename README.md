@@ -3,6 +3,7 @@ Attempt at writing a virtual chat program where the other person is the computer
 Uses Flask, SQLAlchemy, SQLalchemy-utils and PostgreSQL. 
 
 To create the datbase and tables:
+
 To setup the postgresql database run python app.py username password
 *assumes that you have postgresql and a user with superuser permissions set up already
 
