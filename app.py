@@ -4,6 +4,7 @@ from flask import g, Markup
 from flask.ext.sqlalchemy import SQLAlchemy
 from Levenshtein import distance
 from operator import itemgetter
+import random
 
 class MyServer(Flask):
 
@@ -16,7 +17,8 @@ class MyServer(Flask):
 
 app = MyServer(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://centralbureacracy:centralfiling@localhost/convo'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://centralbureacracy:centralfiling@localhost/convo'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://train:kaggle@localhost/convo'
 db = SQLAlchemy(app)
 
 '''
@@ -53,10 +55,23 @@ input text does not need to be already in the db
 def get_comp_response(words):
 	s=Node.query.all()
 	c=closest(words, s)
-	print c
 	n=Node.query.filter(Node.id==int(c[0])).first()
-	return n.response_nodes[0]	#return the response
-	
+	return select_response(n.response_nodes)
+
+def select_response(response_nodes):
+	freqs = []
+	weights=[]
+	for r in response_nodes:
+		freqs.append(r.freq)
+	total = sum(freqs)
+	for f in freqs:
+		f=float(f/total)
+	for f in freqs:
+		weights.append(f+random.random())
+	max_index = weights.index(max(weights))
+	response_nodes[max_index].freq+=1
+	db.session.commit()
+	return response_nodes[max_index]
 
 def add_db_user_text(words, previous_words):
 	#check if user input exists
