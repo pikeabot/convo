@@ -58,6 +58,11 @@ def get_comp_response(words):
 	n=Node.query.filter(Node.id==int(c[0])).first()
 	return select_response(n.response_nodes)
 
+'''
+Select a response from the different response nodes.
+The normalized frequency of the response is added to a random factor to create a weight.
+The max weight is selected as the response.
+'''
 def select_response(response_nodes):
 	freqs = []
 	weights=[]
